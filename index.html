@@ -9,14 +9,24 @@
 </head>
 <body>
     <div id="app">
-        <div id="login-container" class="card">
-            <h2>System Access</h2>
-            <form id="login-form">
-                <input type="text" id="username" placeholder="USER_ID" required>
-                <input type="password" id="password" placeholder="ACCESS_CODE" required>
-                <button type="submit">Initialize</button>
-            </form>
-            <p id="login-error" style="color: #ff4d4d;"></p>
+        <div id="auth-container" class="card">
+            <h2 id="auth-title">System Access</h2>
+            
+            <div id="login-fields">
+                <input type="text" id="username" placeholder="USER_ID">
+                <input type="password" id="password" placeholder="ACCESS_CODE">
+                <button onclick="handleLogin(event)">Initialize</button>
+                <p onclick="toggleAuth()" style="cursor:pointer; color:var(--neon-purple); font-size:0.8rem; margin-top:10px;">Nemáš účet? Registruj se</p>
+            </div>
+
+            <div id="register-fields" class="hidden">
+                <input type="text" id="reg-username" placeholder="NEW_USER_ID">
+                <input type="password" id="reg-password" placeholder="NEW_ACCESS_CODE">
+                <button onclick="handleRegister(event)">Request Access</button>
+                <p onclick="toggleAuth()" style="cursor:pointer; color:var(--neon-purple); font-size:0.8rem; margin-top:10px;">Zpět na přihlášení</p>
+            </div>
+            
+            <p id="auth-error" style="color: #ff4d4d; margin-top:10px;"></p>
         </div>
 
         <div id="app-container" class="hidden">
@@ -24,6 +34,11 @@
                 <h3 id="welcome-message" style="margin: 0; font-size: 1rem;"></h3>
                 <button id="logout-button" style="width: auto; padding: 5px 12px; font-size: 0.7rem; background: #222;">Terminated</button>
             </div>
+
+            <section id="admin-requests" class="card hidden">
+                <h3>Pending Approvals</h3>
+                <div id="requests-list"></div>
+            </section>
 
             <section class="card">
                 <h3>+ New Entry</h3>
