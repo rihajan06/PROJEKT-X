@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Konfigurace z tvého obrázku
+// Tvoje konfigurace z Firebase konzole
 const firebaseConfig = {
   apiKey: "AIzaSyA0b0aoLNcdDeMtD35OwQFrjVOUMsPO668",
   authDomain: "planovac-9cb71.firebaseapp.com",
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // POSLOUCHÁNÍ DATABÁZE (REAL-TIME)
     onSnapshot(collection(db, "users"), (snapshot) => {
-        users = snapshot.docs.map(doc => doc.data());
+        users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (users.length === 0) {
             setDoc(doc(db, "users", "admin"), { username: 'admin', password: 'admin123', isAdmin: true });
         }
@@ -57,12 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         await addDoc(collection(db, "activities"), {
             name: document.getElementById('activity-name').value,
+            description: document.getElementById('activity-description').value,
             date: document.getElementById('activity-date').value,
-            voters: []
+            location: document.getElementById('activity-location').value,
+            cost: document.getElementById('activity-cost').value,
+            voters: [],
+            comments: []
         });
         e.target.reset();
     };
 
+    // RENDER FUNKCE
     function renderActivities() {
         if (activities.length === 0) {
             activitiesListDiv.innerHTML = '<p>Zatím žádné aktivity.</p>';
@@ -71,11 +76,14 @@ document.addEventListener('DOMContentLoaded', () => {
         activitiesListDiv.innerHTML = activities.map(a => `
             <div class="activity">
                 <h3>${a.name}</h3>
-                <p>Datum: ${a.date}</p>
+                <p>${a.description || ''}</p>
+                <p><strong>Kdy:</strong> ${a.date} | <strong>Kde:</strong> ${a.location || 'N/A'}</p>
+                <p><strong>Cena:</strong> ${a.cost || 0} €</p>
             </div>
         `).join('');
     }
 
     document.getElementById('login-form').addEventListener('submit', window.handleLogin);
     document.getElementById('activity-form').addEventListener('submit', window.handleAddActivity);
+    document.getElementById('logout-button').addEventListener('click', () => window.location.reload());
 });
