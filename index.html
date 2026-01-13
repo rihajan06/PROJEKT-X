@@ -3,57 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLANNER CORE</title>
+    <title>Plánovač Víkendů</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app">
         <div id="auth-container" class="card">
-            <h2 id="auth-title">System Access</h2>
+            <h2 id="auth-title">Vstup do systému</h2>
             
             <div id="login-fields">
-                <input type="text" id="username" placeholder="USER_ID">
-                <input type="password" id="password" placeholder="ACCESS_CODE">
-                <button id="login-btn">Initialize</button>
-                <p id="to-reg" style="cursor:pointer; color:#944dff; margin-top:15px; text-align:center;">Nemáš účet? Registrovat se</p>
+                <input type="text" id="username" placeholder="Uživatelské jméno">
+                <input type="password" id="password" placeholder="Heslo">
+                <button id="login-btn">Přihlásit se</button>
+                <div style="text-align:center; margin-top:20px;">
+                    <span style="color: #888; font-size: 0.9rem;">Nemáš ještě účet?</span><br>
+                    <button id="to-reg" style="background:transparent; border:1px solid var(--neon-purple); color:var(--neon-purple); margin-top:10px; padding:8px;">Vytvořit novou registraci</button>
+                </div>
             </div>
 
             <div id="register-fields" class="hidden">
-                <input type="text" id="reg-username" placeholder="NEW_USER_ID">
-                <input type="password" id="reg-password" placeholder="NEW_ACCESS_CODE">
-                <button id="reg-btn">Request Access</button>
-                <p id="to-login" style="cursor:pointer; color:#944dff; margin-top:15px; text-align:center;">Zpět na přihlášení</p>
+                <input type="text" id="reg-username" placeholder="Zvol si jméno">
+                <input type="password" id="reg-password" placeholder="Zvol si heslo">
+                <button id="reg-btn">Odeslat žádost o přístup</button>
+                <button id="to-login" style="background:transparent; border:1px solid #444; color:#888; margin-top:15px; padding:8px;">Zpět na přihlášení</button>
             </div>
             
-            <p id="auth-error" style="color: #ff4d4d; margin-top:10px; text-align:center;"></p>
+            <p id="auth-error" style="color: #ff4d4d; margin-top:15px; text-align:center; font-weight:bold;"></p>
         </div>
 
         <div id="app-container" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 id="welcome-message" style="margin: 0; font-size: 1rem;"></h3>
-                <button id="logout-button" style="width: auto; padding: 5px 12px; font-size: 0.7rem; background: #222;">Terminated</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h3 id="welcome-message" style="margin: 0; color: var(--neon-blue);"></h3>
+                <button id="logout-button" style="width: auto; padding: 6px 15px; background: #cc3333;">Odhlásit se</button>
             </div>
 
             <section id="admin-requests" class="card hidden">
-                <h3>Pending Approvals</h3>
+                <h3>Žádosti o schválení</h3>
                 <div id="requests-list"></div>
             </section>
 
             <section class="card">
-                <h3>+ New Entry</h3>
+                <h3>+ Nový návrh na víkend</h3>
                 <form id="activity-form">
-                    <input type="text" id="activity-name" placeholder="Activity Name" required>
-                    <textarea id="activity-description" placeholder="Technical specifications..."></textarea>
+                    <input type="text" id="activity-name" placeholder="Co budeme dělat?" required>
+                    <textarea id="activity-description" placeholder="Bližší info (nepovinné)"></textarea>
                     <input type="date" id="activity-date" required>
-                    <input type="text" id="activity-location" placeholder="Location">
-                    <input type="number" id="activity-cost" placeholder="Budget (€)">
-                    <button type="submit">Submit Data</button>
+                    <input type="text" id="activity-location" placeholder="Kde? (např. HK, Praha...)">
+                    <input type="number" id="activity-cost" placeholder="Odhadovaná cena (€)">
+                    <button type="submit">Přidat do seznamu</button>
                 </form>
             </section>
 
             <section class="card">
-                <h3>Live Feed</h3>
+                <h3>Aktuální přehled</h3>
                 <div id="activities-list"></div>
             </section>
         </div>
