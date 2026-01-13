@@ -19,7 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let users = [];
     let loggedInUser = null;
 
-    // --- POSLOUCHÁNÍ DATABÁZE ---
+    const authContainer = document.getElementById('auth-container');
+    const appContainer = document.getElementById('app-container');
+    const activitiesListDiv = document.getElementById('activities-list');
+
+    // POSLOUCHÁNÍ DATABÁZE
     onSnapshot(collection(db, "users"), (snapshot) => {
         users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (users.length === 0) {
@@ -33,17 +37,21 @@ document.addEventListener('DOMContentLoaded', () => {
         renderActivities();
     });
 
-    // --- PŘIHLÁŠENÍ & REGISTRACE ---
-    window.toggleAuth = () => {
+    // PŘEPÍNÁNÍ MEZI LOGINEM A REGISTRACÍ
+    const toggleAuth = () => {
         document.getElementById('login-fields').classList.toggle('hidden');
         document.getElementById('register-fields').classList.toggle('hidden');
         document.getElementById('auth-title').textContent = document.getElementById('login-fields').classList.contains('hidden') ? 'New Request' : 'System Access';
     };
 
-    window.handleRegister = async (e) => {
-        e.preventDefault();
+    document.getElementById('to-reg').onclick = toggleAuth;
+    document.getElementById('to-login').onclick = toggleAuth;
+
+    // REGISTRACE
+    document.getElementById('reg-btn').onclick = async () => {
         const u = document.getElementById('reg-username').value;
         const p = document.getElementById('reg-password').value;
+        if (!u || !p) return alert("Vyplň všechna pole!");
         if (users.find(user => user.username === u)) return alert("Uživatel už existuje!");
 
         await addDoc(collection(db, "users"), {
@@ -56,8 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleAuth();
     };
 
-    window.handleLogin = (e) => {
-        e.preventDefault();
+    // PŘIHLÁŠENÍ
+    document.getElementById('login-btn').onclick = () => {
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
         const user = users.find(user => user.username === u && user.password === p);
@@ -66,14 +74,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user.status === 'pending') return document.getElementById('auth-error').textContent = "Účet čeká na schválení!";
 
         loggedInUser = user;
-        document.getElementById('auth-container').classList.add('hidden');
-        document.getElementById('app-container').classList.remove('hidden');
+        authContainer.classList.add('hidden');
+        appContainer.classList.remove('hidden');
         document.getElementById('welcome-message').textContent = `USER: ${user.username}`;
         
         if (user.isAdmin) document.getElementById('admin-requests').classList.remove('hidden');
     };
 
-    // --- ADMIN FUNKCE ---
+    // ADMIN: SCHVALOVÁNÍ
     window.approveUser = async (id) => {
         await updateDoc(doc(db, "users", id), { status: 'approved' });
     };
@@ -82,27 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const list = document.getElementById('requests-list');
         const pending = users.filter(u => u.status === 'pending');
         list.innerHTML = pending.length ? pending.map(u => `
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px; background:#1a1a1a; padding:10px; border-radius:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:#1a1a1a; padding:10px; border-radius:10px; border:1px solid var(--neon-purple);">
                 <span>${u.username}</span>
                 <button onclick="approveUser('${u.id}')" style="width:auto; padding:5px 10px; font-size:0.7rem;">APPROVE</button>
             </div>
         `).join('') : '<p style="color:gray; font-size:0.8rem;">No pending requests.</p>';
     }
 
-    // --- AKTIVITY (Tvoje původní funkce) ---
-    window.handleAddActivity = async (e) => {
-        e.preventDefault();
-        await addDoc(collection(db, "activities"), {
-            name: document.getElementById('activity-name').value,
-            description: document.getElementById('activity-description').value,
-            date: document.getElementById('activity-date').value,
-            location: document.getElementById('activity-location').value,
-            cost: document.getElementById('activity-cost').value,
-            voters: []
-        });
-        e.target.reset();
-    };
-
+    // AKTIVITY
     window.handleVote = async (id) => {
         const act = activities.find(a => a.id === id);
         let v = act.voters || [];
@@ -128,6 +123,18 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
     }
 
-    document.getElementById('activity-form').addEventListener('submit', window.handleAddActivity);
-    document.getElementById('logout-button').addEventListener('click', () => window.location.reload());
+    document.getElementById('activity-form').onsubmit = async (e) => {
+        e.preventDefault();
+        await addDoc(collection(db, "activities"), {
+            name: document.getElementById('activity-name').value,
+            description: document.getElementById('activity-description').value,
+            date: document.getElementById('activity-date').value,
+            location: document.getElementById('activity-location').value,
+            cost: document.getElementById('activity-cost').value,
+            voters: []
+        });
+        e.target.reset();
+    };
+
+    document.getElementById('logout-button').onclick = () => window.location.reload();
 });
