@@ -10,7 +10,7 @@
 body {
     background-color: var(--dark-bg);
     color: var(--text-main);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Segoe UI', sans-serif;
     margin: 0;
     display: flex;
     justify-content: center;
@@ -20,16 +20,17 @@ body {
 
 #app {
     width: 100%;
-    max-width: 480px;
+    max-width: 500px;
     padding: 20px;
 }
 
+/* Skleněný efekt karet */
 .card {
     background: var(--card-bg);
     border: 1px solid var(--glass-border);
     border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    padding: 25px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px);
     margin-bottom: 25px;
 }
@@ -38,7 +39,8 @@ h2, h3 {
     text-transform: uppercase;
     letter-spacing: 2px;
     color: var(--neon-blue);
-    text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    margin-top: 0;
 }
 
 input, textarea {
@@ -50,15 +52,15 @@ input, textarea {
     color: white;
     margin-bottom: 15px;
     box-sizing: border-box;
-    transition: 0.3s;
+    font-size: 16px;
 }
 
 input:focus {
     border-color: var(--neon-blue);
     outline: none;
-    box-shadow: 0 0 8px rgba(0, 212, 255, 0.2);
 }
 
+/* Neonové tlačítko */
 button {
     width: 100%;
     background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
@@ -70,29 +72,32 @@ button {
     text-transform: uppercase;
     cursor: pointer;
     transition: 0.3s;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
 }
 
 button:hover {
-    filter: brightness(1.2);
-    transform: scale(1.02);
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.6);
+    transform: translateY(-2px);
 }
 
+/* Styl karet aktivit */
 .activity-card {
-    background: #181818;
+    background: rgba(255, 255, 255, 0.03);
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 15px;
-    border-left: 2px solid var(--neon-blue);
-    position: relative;
-    overflow: hidden;
+    border-left: 4px solid var(--neon-blue);
 }
 
-.activity-card::before {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 50px; height: 50px;
-    background: linear-gradient(135deg, transparent 50%, rgba(0, 212, 255, 0.1) 50%);
+.activity-card h3 {
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+.activity-info {
+    font-size: 0.9rem;
+    color: #888;
+    margin: 5px 0;
 }
 
 .vote-btn {
@@ -105,6 +110,16 @@ button:hover {
     background: rgba(0, 212, 255, 0.2);
     border-color: var(--neon-blue);
     color: var(--neon-blue);
+}
+
+.delete-btn {
+    background: transparent;
+    color: #ff4d4d;
+    width: auto;
+    padding: 5px 10px;
+    font-size: 0.7rem;
+    float: right;
+    border: 1px solid #ff4d4d;
 }
 
 .hidden { display: none; }
