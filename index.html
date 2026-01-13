@@ -3,48 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WeekendPlanner - HK</title>
+    <title>PLANNER CORE</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="app">
         <div id="login-container" class="card">
-            <h2>Přihlášení</h2>
+            <h2>System Access</h2>
             <form id="login-form">
-                <input type="text" id="username" placeholder="Uživatelské jméno" required>
-                <input type="password" id="password" placeholder="Heslo" required>
-                <button type="submit">Přihlásit</button>
+                <input type="text" id="username" placeholder="USER_ID" required>
+                <input type="password" id="password" placeholder="ACCESS_CODE" required>
+                <button type="submit">Initialize</button>
             </form>
-            <p id="login-error" style="color: red;"></p>
+            <p id="login-error" style="color: #ff4d4d; font-size: 0.8rem;"></p>
         </div>
 
         <div id="app-container" class="hidden">
-            <header>
-                <h1 id="welcome-message"></h1>
-                <button id="logout-button">Odhlásit</button>
-            </header>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <span id="welcome-message" style="font-weight: bold; color: var(--neon-blue);"></span>
+                <button id="logout-button" style="width: auto; padding: 5px 12px; font-size: 0.7rem; background: #333;">Exit</button>
+            </div>
 
-            <main>
-                <section id="idea-section" class="card">
-                    <h2>Navrhnout aktivitu</h2>
-                    <form id="activity-form">
-                        <input type="text" id="activity-name" placeholder="Název aktivity" required>
-                        <textarea id="activity-description" placeholder="Popis (volitelné)"></textarea>
-                        <input type="date" id="activity-date" required>
-                        <input type="text" id="activity-location" placeholder="Místo konání">
-                        <input type="number" id="activity-cost" placeholder="Odhadovaná cena (€)">
-                        <button type="submit">Přidat návrh</button>
-                    </form>
-                </section>
+            <section class="card">
+                <h3>+ New Entry</h3>
+                <form id="activity-form">
+                    <input type="text" id="activity-name" placeholder="Activity Name" required>
+                    <textarea id="activity-description" placeholder="Technical specifications..."></textarea>
+                    <input type="date" id="activity-date" required>
+                    <input type="text" id="activity-location" placeholder="Location">
+                    <input type="number" id="activity-cost" placeholder="Budget (€)">
+                    <button type="submit">Submit Data</button>
+                </form>
+            </section>
 
-                <section class="card">
-                    <h2>Aktuální návrhy</h2>
-                    <div id="activities-list"></div>
-                </section>
-            </main>
+            <section class="card">
+                <h3>Live Feed</h3>
+                <div id="activities-list"></div>
+            </section>
         </div>
     </div>
-
     <script type="module" src="script.js"></script>
 </body>
 </html>
