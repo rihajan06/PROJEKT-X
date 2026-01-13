@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Konfigurace z tvého projektu planovac
+// Tvůj funkční config z konzole
 const firebaseConfig = {
   apiKey: "AIzaSyA0b0aoLNcdDeMtD35OwQFrjVOUMsPO668",
   authDomain: "planovac-9cb71.firebaseapp.com",
@@ -25,16 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const welcomeMessage = document.getElementById('welcome-message');
     const activitiesListDiv = document.getElementById('activities-list');
 
-    // POSLOUCHÁNÍ DATABÁZE (Real-time)
+    // POSLOUCHÁNÍ DATABÁZE
     onSnapshot(collection(db, "users"), (snapshot) => {
         users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Pokud je DB prázdná, vytvoříme prvního admina
         if (users.length === 0) {
-            setDoc(doc(db, "users", "admin"), { 
-                username: 'admin', 
-                password: 'admin123', 
-                isAdmin: true 
-            });
+            setDoc(doc(db, "users", "admin"), { username: 'admin', password: 'admin123', isAdmin: true });
         }
     });
 
@@ -46,49 +41,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // PŘIHLÁŠENÍ
     window.handleLogin = (event) => {
         event.preventDefault();
-        const user = users.find(u => 
-            u.username === document.getElementById('username').value && 
-            u.password === document.getElementById('password').value
-        );
-
+        const user = users.find(u => u.username === document.getElementById('username').value && u.password === document.getElementById('password').value);
         if (user) {
             loggedInUser = user;
             loginContainer.classList.add('hidden');
             appContainer.classList.remove('hidden');
-            welcomeMessage.textContent = `Ahoj, ${loggedInUser.username}!`;
+            welcomeMessage.textContent = `Vítej, ${loggedInUser.username}!`;
         } else {
-            document.getElementById('login-error').textContent = 'Špatné jméno nebo heslo.';
+            document.getElementById('login-error').textContent = 'Chyba přihlášení.';
         }
     };
 
     // PŘIDÁNÍ AKTIVITY
     window.handleAddActivity = async (e) => {
         e.preventDefault();
-        try {
-            await addDoc(collection(db, "activities"), {
-                name: document.getElementById('activity-name').value,
-                description: document.getElementById('activity-description').value,
-                date: document.getElementById('activity-date').value,
-                location: document.getElementById('activity-location').value,
-                cost: document.getElementById('activity-cost').value,
-                voters: [],
-                createdAt: new Date()
-            });
-            e.target.reset();
-        } catch (error) {
-            console.error("Chyba při ukládání:", error);
-            alert("Nepodařilo se uložit aktivitu. Zkontroluj Rules ve Firebase!");
-        }
+        await addDoc(collection(db, "activities"), {
+            name: document.getElementById('activity-name').value,
+            description: document.getElementById('activity-description').value,
+            date: document.getElementById('activity-date').value,
+            location: document.getElementById('activity-location').value,
+            cost: document.getElementById('activity-cost').value,
+            voters: []
+        });
+        e.target.reset();
     };
 
-    // HLASOVÁNÍ
+    // HLASOVÁNÍ (Tato funkce chyběla u tlačítka)
     window.handleVote = async (activityId) => {
         const activity = activities.find(a => a.id === activityId);
         let voters = activity.voters || [];
-        const index = voters.indexOf(loggedInUser.username);
-        
-        if (index > -1) {
-            voters.splice(index, 1); // Odebrat hlas
+        const userIndex = voters.indexOf(loggedInUser.username);
+
+        if (userIndex > -1) {
+            voters.splice(userIndex, 1); // Zrušit hlas
         } else {
             voters.push(loggedInUser.username); // Přidat hlas
         }
@@ -96,29 +81,37 @@ document.addEventListener('DOMContentLoaded', () => {
         await updateDoc(doc(db, "activities", activityId), { voters: voters });
     };
 
+    // MAZÁNÍ (Pouze pro admina)
+    window.handleDelete = async (activityId) => {
+        if (confirm('Opravdu chceš tento návrh smazat?')) {
+            await deleteDoc(doc(db, "activities", activityId));
+        }
+    };
+
     function renderActivities() {
         if (activities.length === 0) {
-            activitiesListDiv.innerHTML = '<p>Zatím žádné návrhy. Buď první!</p>';
+            activitiesListDiv.innerHTML = '<p>Zatím žádné návrhy.</p>';
             return;
         }
-
         activitiesListDiv.innerHTML = activities
-            .sort((a, b) => b.voters.length - a.voters.length) // Seřadit podle hlasů
+            .sort((a, b) => (b.voters?.length || 0) - (a.voters?.length || 0))
             .map(a => `
-                <div class="activity-card">
-                    <h3>${a.name}</h3>
-                    <p>${a.description || 'Bez popisu'}</p>
-                    <p><strong>Kdy:</strong> ${a.date} | <strong>Kde:</strong> ${a.location || 'N/A'}</p>
-                    <p><strong>Cena:</strong> ${a.cost || 0} €</p>
-                    <button onclick="handleVote('${a.id}')">
-                        ${(a.voters || []).includes(loggedInUser?.username) ? '❤️ Hlasováno' : '🤍 Hlasovat'} 
-                        (${(a.voters || []).length})
-                    </button>
-                </div>
-            `).join('');
+            <div class="activity-card" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 8px;">
+                <h3>${a.name}</h3>
+                <p>${a.description || ''}</p>
+                <p><strong>Kdy:</strong> ${a.date} | <strong>Kde:</strong> ${a.location || 'N/A'}</p>
+                <p><strong>Cena:</strong> ${a.cost || 0} €</p>
+                
+                <button onclick="handleVote('${a.id}')">
+                    ${(a.voters || []).includes(loggedInUser?.username) ? '❤️ Hlasováno' : '🤍 Hlasovat'} 
+                    (${(a.voters || []).length})
+                </button>
+
+                ${loggedInUser?.isAdmin ? `<button onclick="handleDelete('${a.id}')" style="background: red; color: white; margin-left: 10px;">Smazat</button>` : ''}
+            </div>
+        `).join('');
     }
 
-    // EVENT LISTENERS
     document.getElementById('login-form').addEventListener('submit', window.handleLogin);
     document.getElementById('activity-form').addEventListener('submit', window.handleAddActivity);
     document.getElementById('logout-button').addEventListener('click', () => window.location.reload());
