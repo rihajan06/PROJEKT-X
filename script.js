@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Tvůj funkční config z konzole
 const firebaseConfig = {
   apiKey: "AIzaSyA0b0aoLNcdDeMtD35OwQFrjVOUMsPO668",
   authDomain: "planovac-9cb71.firebaseapp.com",
@@ -20,17 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let users = [];
     let loggedInUser = null;
 
-    const loginContainer = document.getElementById('login-container');
-    const appContainer = document.getElementById('app-container');
-    const welcomeMessage = document.getElementById('welcome-message');
-    const activitiesListDiv = document.getElementById('activities-list');
-
-    // POSLOUCHÁNÍ DATABÁZE
+    // --- POSLOUCHÁNÍ DATABÁZE ---
     onSnapshot(collection(db, "users"), (snapshot) => {
         users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (users.length === 0) {
-            setDoc(doc(db, "users", "admin"), { username: 'admin', password: 'admin123', isAdmin: true });
+            setDoc(doc(db, "users", "admin"), { username: 'admin', password: 'admin123', isAdmin: true, status: 'approved' });
         }
+        if (loggedInUser?.isAdmin) renderRequests();
     });
 
     onSnapshot(collection(db, "activities"), (snapshot) => {
@@ -38,21 +33,63 @@ document.addEventListener('DOMContentLoaded', () => {
         renderActivities();
     });
 
-    // PŘIHLÁŠENÍ
-    window.handleLogin = (event) => {
-        event.preventDefault();
-        const user = users.find(u => u.username === document.getElementById('username').value && u.password === document.getElementById('password').value);
-        if (user) {
-            loggedInUser = user;
-            loginContainer.classList.add('hidden');
-            appContainer.classList.remove('hidden');
-            welcomeMessage.textContent = `Vítej, ${loggedInUser.username}!`;
-        } else {
-            document.getElementById('login-error').textContent = 'Chyba přihlášení.';
-        }
+    // --- PŘIHLÁŠENÍ & REGISTRACE ---
+    window.toggleAuth = () => {
+        document.getElementById('login-fields').classList.toggle('hidden');
+        document.getElementById('register-fields').classList.toggle('hidden');
+        document.getElementById('auth-title').textContent = document.getElementById('login-fields').classList.contains('hidden') ? 'New Request' : 'System Access';
     };
 
-    // PŘIDÁNÍ AKTIVITY
+    window.handleRegister = async (e) => {
+        e.preventDefault();
+        const u = document.getElementById('reg-username').value;
+        const p = document.getElementById('reg-password').value;
+        if (users.find(user => user.username === u)) return alert("Uživatel už existuje!");
+
+        await addDoc(collection(db, "users"), {
+            username: u,
+            password: p,
+            isAdmin: false,
+            status: 'pending'
+        });
+        alert("Žádost odeslána! Počkej na schválení adminem.");
+        toggleAuth();
+    };
+
+    window.handleLogin = (e) => {
+        e.preventDefault();
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        const user = users.find(user => user.username === u && user.password === p);
+
+        if (!user) return document.getElementById('auth-error').textContent = "Neplatné údaje!";
+        if (user.status === 'pending') return document.getElementById('auth-error').textContent = "Účet čeká na schválení!";
+
+        loggedInUser = user;
+        document.getElementById('auth-container').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+        document.getElementById('welcome-message').textContent = `USER: ${user.username}`;
+        
+        if (user.isAdmin) document.getElementById('admin-requests').classList.remove('hidden');
+    };
+
+    // --- ADMIN FUNKCE ---
+    window.approveUser = async (id) => {
+        await updateDoc(doc(db, "users", id), { status: 'approved' });
+    };
+
+    function renderRequests() {
+        const list = document.getElementById('requests-list');
+        const pending = users.filter(u => u.status === 'pending');
+        list.innerHTML = pending.length ? pending.map(u => `
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; background:#1a1a1a; padding:10px; border-radius:10px;">
+                <span>${u.username}</span>
+                <button onclick="approveUser('${u.id}')" style="width:auto; padding:5px 10px; font-size:0.7rem;">APPROVE</button>
+            </div>
+        `).join('') : '<p style="color:gray; font-size:0.8rem;">No pending requests.</p>';
+    }
+
+    // --- AKTIVITY (Tvoje původní funkce) ---
     window.handleAddActivity = async (e) => {
         e.preventDefault();
         await addDoc(collection(db, "activities"), {
@@ -66,53 +103,31 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.reset();
     };
 
-    // HLASOVÁNÍ (Tato funkce chyběla u tlačítka)
-    window.handleVote = async (activityId) => {
-        const activity = activities.find(a => a.id === activityId);
-        let voters = activity.voters || [];
-        const userIndex = voters.indexOf(loggedInUser.username);
-
-        if (userIndex > -1) {
-            voters.splice(userIndex, 1); // Zrušit hlas
-        } else {
-            voters.push(loggedInUser.username); // Přidat hlas
-        }
-
-        await updateDoc(doc(db, "activities", activityId), { voters: voters });
-    };
-
-    // MAZÁNÍ (Pouze pro admina)
-    window.handleDelete = async (activityId) => {
-        if (confirm('Opravdu chceš tento návrh smazat?')) {
-            await deleteDoc(doc(db, "activities", activityId));
-        }
+    window.handleVote = async (id) => {
+        const act = activities.find(a => a.id === id);
+        let v = act.voters || [];
+        const i = v.indexOf(loggedInUser.username);
+        if (i > -1) v.splice(i, 1); else v.push(loggedInUser.username);
+        await updateDoc(doc(db, "activities", id), { voters: v });
     };
 
     function renderActivities() {
-        if (activities.length === 0) {
-            activitiesListDiv.innerHTML = '<p>Zatím žádné návrhy.</p>';
-            return;
-        }
         activitiesListDiv.innerHTML = activities
-            .sort((a, b) => (b.voters?.length || 0) - (a.voters?.length || 0))
+            .sort((a,b) => (b.voters?.length || 0) - (a.voters?.length || 0))
             .map(a => `
-            <div class="activity-card" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 8px;">
-                <h3>${a.name}</h3>
-                <p>${a.description || ''}</p>
-                <p><strong>Kdy:</strong> ${a.date} | <strong>Kde:</strong> ${a.location || 'N/A'}</p>
-                <p><strong>Cena:</strong> ${a.cost || 0} €</p>
-                
-                <button onclick="handleVote('${a.id}')">
-                    ${(a.voters || []).includes(loggedInUser?.username) ? '❤️ Hlasováno' : '🤍 Hlasovat'} 
-                    (${(a.voters || []).length})
-                </button>
-
-                ${loggedInUser?.isAdmin ? `<button onclick="handleDelete('${a.id}')" style="background: red; color: white; margin-left: 10px;">Smazat</button>` : ''}
-            </div>
-        `).join('');
+                <div class="activity-card">
+                    <h3>${a.name}</h3>
+                    <p>${a.description || ''}</p>
+                    <div class="activity-info">📍 ${a.location || 'N/A'}</div>
+                    <div class="activity-info">📅 ${a.date}</div>
+                    <div class="activity-info">💰 ${a.cost || 0} €</div>
+                    <button class="vote-btn ${(a.voters || []).includes(loggedInUser?.username) ? 'active' : ''}" onclick="handleVote('${a.id}')">
+                        VOTE (${(a.voters || []).length})
+                    </button>
+                </div>
+            `).join('');
     }
 
-    document.getElementById('login-form').addEventListener('submit', window.handleLogin);
     document.getElementById('activity-form').addEventListener('submit', window.handleAddActivity);
     document.getElementById('logout-button').addEventListener('click', () => window.location.reload());
 });
