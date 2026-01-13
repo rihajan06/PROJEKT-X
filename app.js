@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderActivities();
     });
 
-    // PŘEPÍNÁNÍ MEZI LOGINEM A REGISTRACÍ
+    // PŘEPÍNÁNÍ LOGIN / REGISTRACE
     const toggleAuth = () => {
         document.getElementById('login-fields').classList.toggle('hidden');
         document.getElementById('register-fields').classList.toggle('hidden');
@@ -51,16 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('reg-btn').onclick = async () => {
         const u = document.getElementById('reg-username').value;
         const p = document.getElementById('reg-password').value;
-        if (!u || !p) return alert("Vyplň všechna pole!");
-        if (users.find(user => user.username === u)) return alert("Uživatel už existuje!");
+        if (!u || !p) return alert("Fill all fields!");
+        if (users.find(user => user.username === u)) return alert("User exists!");
 
         await addDoc(collection(db, "users"), {
-            username: u,
-            password: p,
-            isAdmin: false,
-            status: 'pending'
+            username: u, password: p, isAdmin: false, status: 'pending'
         });
-        alert("Žádost odeslána! Počkej na schválení adminem.");
+        alert("Request sent! Wait for Admin approval.");
         toggleAuth();
     };
 
@@ -70,18 +67,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const p = document.getElementById('password').value;
         const user = users.find(user => user.username === u && user.password === p);
 
-        if (!user) return document.getElementById('auth-error').textContent = "Neplatné údaje!";
-        if (user.status === 'pending') return document.getElementById('auth-error').textContent = "Účet čeká na schválení!";
+        if (!user) return document.getElementById('auth-error').textContent = "Access Denied!";
+        if (user.status === 'pending') return document.getElementById('auth-error').textContent = "Pending Approval!";
 
         loggedInUser = user;
         authContainer.classList.add('hidden');
         appContainer.classList.remove('hidden');
-        document.getElementById('welcome-message').textContent = `USER: ${user.username}`;
+        document.getElementById('welcome-message').textContent = `ID: ${user.username}`;
         
         if (user.isAdmin) document.getElementById('admin-requests').classList.remove('hidden');
     };
 
-    // ADMIN: SCHVALOVÁNÍ
+    // ADMIN: APPROVE
     window.approveUser = async (id) => {
         await updateDoc(doc(db, "users", id), { status: 'approved' });
     };
@@ -90,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const list = document.getElementById('requests-list');
         const pending = users.filter(u => u.status === 'pending');
         list.innerHTML = pending.length ? pending.map(u => `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:#1a1a1a; padding:10px; border-radius:10px; border:1px solid var(--neon-purple);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:#1a1a1a; padding:10px; border-radius:10px; border:1px solid #944dff;">
                 <span>${u.username}</span>
                 <button onclick="approveUser('${u.id}')" style="width:auto; padding:5px 10px; font-size:0.7rem;">APPROVE</button>
             </div>
@@ -112,10 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(a => `
                 <div class="activity-card">
                     <h3>${a.name}</h3>
-                    <p>${a.description || ''}</p>
+                    <p style="color:#aaa">${a.description || ''}</p>
                     <div class="activity-info">📍 ${a.location || 'N/A'}</div>
                     <div class="activity-info">📅 ${a.date}</div>
-                    <div class="activity-info">💰 ${a.cost || 0} €</div>
                     <button class="vote-btn ${(a.voters || []).includes(loggedInUser?.username) ? 'active' : ''}" onclick="handleVote('${a.id}')">
                         VOTE (${(a.voters || []).length})
                     </button>
