@@ -15,18 +15,18 @@
             <div id="login-fields">
                 <input type="text" id="username" placeholder="USER_ID">
                 <input type="password" id="password" placeholder="ACCESS_CODE">
-                <button onclick="handleLogin(event)">Initialize</button>
-                <p onclick="toggleAuth()" style="cursor:pointer; color:var(--neon-purple); font-size:0.8rem; margin-top:10px;">Nemáš účet? Registruj se</p>
+                <button id="login-btn">Initialize</button>
+                <p id="to-reg" style="cursor:pointer; color:var(--neon-purple); font-size:0.8rem; margin-top:15px; text-align:center;">Nemáš účet? Registrovat se</p>
             </div>
 
             <div id="register-fields" class="hidden">
                 <input type="text" id="reg-username" placeholder="NEW_USER_ID">
                 <input type="password" id="reg-password" placeholder="NEW_ACCESS_CODE">
-                <button onclick="handleRegister(event)">Request Access</button>
-                <p onclick="toggleAuth()" style="cursor:pointer; color:var(--neon-purple); font-size:0.8rem; margin-top:10px;">Zpět na přihlášení</p>
+                <button id="reg-btn">Request Access</button>
+                <p id="to-login" style="cursor:pointer; color:var(--neon-purple); font-size:0.8rem; margin-top:15px; text-align:center;">Zpět na přihlášení</p>
             </div>
             
-            <p id="auth-error" style="color: #ff4d4d; margin-top:10px;"></p>
+            <p id="auth-error" style="color: #ff4d4d; margin-top:10px; text-align:center;"></p>
         </div>
 
         <div id="app-container" class="hidden">
