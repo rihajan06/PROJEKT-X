@@ -3,82 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WeekendPlanner</title>
-    <link rel="stylesheet" href="style.css?v=1.1">
+    <title>WeekendPlanner - HK</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="login-container">
-        <h2>Přihlášení</h2>
-        <form id="login-form">
-            <input type="text" id="username" placeholder="Uživatelské jméno" required>
-            <input type="password" id="password" placeholder="Heslo" required>
-            <button type="submit">Přihlásit</button>
-            <p id="login-error" class="error-message"></p>
-        </form>
-    </div>
+    <div id="app">
+        <div id="login-container" class="card">
+            <h2>Přihlášení</h2>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="Uživatelské jméno" required>
+                <input type="password" id="password" placeholder="Heslo" required>
+                <button type="submit">Přihlásit</button>
+            </form>
+            <p id="login-error" style="color: red;"></p>
+        </div>
 
-    <div id="app-container" class="hidden">
-        <header>
-            <h1>WeekendPlanner</h1>
-            <div>
-                <span id="welcome-message"></span>
+        <div id="app-container" class="hidden">
+            <header>
+                <h1 id="welcome-message"></h1>
                 <button id="logout-button">Odhlásit</button>
-            </div>
-        </header>
-        <main>
-            <section id="admin-panel" class="hidden">
-                <h2>Admin Panel: Správa uživatelů</h2>
-                <form id="create-user-form">
-                    <input type="text" id="new-username" placeholder="Nové uživatelské jméno" required>
-                    <input type="password" id="new-password" placeholder="Nové heslo" required>
-                    <button type="submit">Vytvořit uživatele</button>
-                </form>
-                <div id="user-list-container">
-                    <h3>Registrovaní uživatelé</h3>
-                    <ul id="user-list"></ul>
-                </div>
-            </section>
-    
-            <section id="idea-section" class="hidden">
-                <h2>Přidat novou aktivitu</h2>
-                <form id="activity-form">
-                    <input type="text" id="activity-name" placeholder="Název aktivity" required>
-                    <textarea id="activity-description" placeholder="Popis aktivity"></textarea>
-                    <input type="date" id="activity-date" required>
-                    <input type="text" id="activity-location" placeholder="Místo konání">
-                    <input type="number" id="activity-cost" placeholder="Odhadované náklady (€)" min="0">
-                    <button type="submit">Přidat aktivitu</button>
-                </form>
-            </section>
-    
-            <section id="participants-section" class="hidden">
-                <h2>Správa účastníků</h2>
-                <form id="participant-form">
-                    <input type="text" id="participant-name" placeholder="Jméno účastníka" required>
-                    <input type="text" id="participant-role" placeholder="Role (např. Organizátor)" required>
-                    <button type="submit">Přidat účastníka</button>
-                </form>
-                <h3>Seznam účastníků:</h3>
-                <ul id="participants-list"></ul>
-            </section>
-    
-            <section id="voting-section">
-                <h2>Hlasování o aktivitách</h2>
-                <div id="activities-list">
-                    <p>Zatím nebyly přidány žádné aktivity.</p>
-                </div>
-            </section>
-    
-            <section id="results-section">
-                <h2>Výsledky a Export</h2>
-                <div id="winner-activity">
-                    <p>Zatím žádná vítězná aktivita.</p>
-                </div>
-                <button id="export-plan">Exportovat Finální Plán (TXT)</button>
-            </section>
-        </main>
+            </header>
+
+            <main>
+                <section id="idea-section" class="card">
+                    <h2>Navrhnout aktivitu</h2>
+                    <form id="activity-form">
+                        <input type="text" id="activity-name" placeholder="Název aktivity" required>
+                        <textarea id="activity-description" placeholder="Popis (volitelné)"></textarea>
+                        <input type="date" id="activity-date" required>
+                        <input type="text" id="activity-location" placeholder="Místo konání">
+                        <input type="number" id="activity-cost" placeholder="Odhadovaná cena (€)">
+                        <button type="submit">Přidat návrh</button>
+                    </form>
+                </section>
+
+                <section class="card">
+                    <h2>Aktuální návrhy</h2>
+                    <div id="activities-list"></div>
+                </section>
+            </main>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
