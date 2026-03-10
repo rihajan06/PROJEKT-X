@@ -1,63 +1,80 @@
-// ... (Firebase importy a config zůstávají stejné jako minule) ...
+// --- ZDE MĚJ SVÉ FIREBASE IMPORTY A KONFIGURACI ---
+// import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x/firebase-app.js";
+// import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.x/firebase-firestore.js";
 
-    // Přeložené hlášky u registrace
-    document.getElementById('reg-btn').onclick = async () => {
-        const u = document.getElementById('reg-username').value;
-        const p = document.getElementById('reg-password').value;
-        if (!u || !p) return alert("Musíš vyplnit jméno i heslo!");
-        if (users.find(user => user.username === u)) return alert("Tento uživatel už existuje!");
+// const app = initializeApp(firebaseConfig);
+// const db = getFirestore(app);
 
-        await addDoc(collection(db, "users"), {
-            username: u, password: p, isAdmin: false, status: 'pending'
-        });
-        alert("Žádost odeslána! Admin tě musí nejdříve schválit.");
-        toggleAuth();
-    };
+// ELEMENTY Z HTML
+const authContainer = document.getElementById('auth-container');
+const appContainer = document.getElementById('app-container');
+const authError = document.getElementById('auth-error');
+const loginFields = document.getElementById('login-fields');
+const registerFields = document.getElementById('register-fields');
 
-    // Přeložené hlášky u přihlášení
-    document.getElementById('login-btn').onclick = () => {
-        const u = document.getElementById('username').value;
-        const p = document.getElementById('password').value;
-        const user = users.find(user => user.username === u && user.password === p);
+// PROMĚNNÉ PRO DATA
+let users = [];
+let activities = [];
+let loggedInUser = null;
 
-        if (!user) return document.getElementById('auth-error').textContent = "Špatné jméno nebo heslo!";
-        if (user.status === 'pending') return document.getElementById('auth-error').textContent = "Tvůj účet ještě nebyl schválen adminem!";
+// NAČÍTÁNÍ UŽIVATELŮ V REÁLNÉM ČASE
+onSnapshot(collection(db, "users"), (snapshot) => {
+    users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log("Uživatelé načteni:", users);
+});
 
-        loggedInUser = user;
-        authContainer.classList.add('hidden');
-        appContainer.classList.remove('hidden');
-        document.getElementById('welcome-message').textContent = `Uživatel: ${user.username}`;
-        
-        if (user.isAdmin) document.getElementById('admin-requests').classList.remove('hidden');
-    };
+// PŘEPÍNÁNÍ REGISTRACE/LOGINU
+window.toggleAuth = () => {
+    loginFields.classList.toggle('hidden');
+    registerFields.classList.toggle('hidden');
+    document.getElementById('auth-title').textContent = 
+        loginFields.classList.contains('hidden') ? "Nová registrace" : "Vstup do systému";
+};
 
-    // Přeložený výpis schvalování
-    function renderRequests() {
-        const list = document.getElementById('requests-list');
-        const pending = users.filter(u => u.status === 'pending');
-        list.innerHTML = pending.length ? pending.map(u => `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:#1a1a1a; padding:12px; border-radius:10px; border:1px solid #944dff;">
-                <span>${u.username}</span>
-                <button onclick="approveUser('${u.id}')" style="width:auto; padding:5px 15px; font-size:0.8rem;">SCHVÁLIT</button>
-            </div>
-        `).join('') : '<p style="color:gray; font-size:0.8rem;">Žádné nové žádosti o přístup.</p>';
+document.getElementById('to-reg').onclick = toggleAuth;
+document.getElementById('to-login').onclick = toggleAuth;
+
+// REGISTRACE
+document.getElementById('reg-btn').onclick = async () => {
+    const u = document.getElementById('reg-username').value;
+    const p = document.getElementById('reg-password').value;
+    
+    if (!u || !p) return alert("Vyplň vše!");
+    if (users.find(user => user.username === u)) return alert("Uživatel už existuje!");
+
+    await addDoc(collection(db, "users"), {
+        username: u, password: p, isAdmin: false, status: 'pending'
+    });
+    alert("Žádost odeslána! Admin tě musí schválit.");
+    toggleAuth();
+};
+
+// LOGIN
+document.getElementById('login-btn').onclick = () => {
+    const u = document.getElementById('username').value;
+    const p = document.getElementById('password').value;
+
+    const user = users.find(user => user.username === u && user.password === p);
+
+    if (!user) {
+        authError.textContent = "Špatné jméno nebo heslo!";
+        return;
+    }
+    if (user.status === 'pending') {
+        authError.textContent = "Účet čeká na schválení adminem.";
+        return;
     }
 
-    // Přeložené hlasování
-    function renderActivities() {
-        activitiesListDiv.innerHTML = activities
-            .sort((a,b) => (b.voters?.length || 0) - (a.voters?.length || 0))
-            .map(a => {
-                const isVoted = (a.voters || []).includes(loggedInUser?.username);
-                return `
-                <div class="activity-card">
-                    <h3>${a.name}</h3>
-                    <p style="color:#aaa">${a.description || ''}</p>
-                    <div class="activity-info">📍 Místo: ${a.location || 'Neuvedeno'}</div>
-                    <div class="activity-info">📅 Datum: ${a.date}</div>
-                    <button class="vote-btn ${isVoted ? 'active' : ''}" onclick="handleVote('${a.id}')">
-                        ${isVoted ? '❤️ HLASOVÁNO' : '🤍 HLASOVAT'} (${(a.voters || []).length})
-                    </button>
-                </div>
-            `}).join('');
-    }
+    // ÚSPĚCH
+    loggedInUser = user;
+    authContainer.classList.add('hidden');
+    appContainer.classList.remove('hidden');
+    document.getElementById('welcome-message').textContent = `Uživatel: ${user.username}`;
+    
+    if (user.isAdmin) document.getElementById('admin-requests').classList.remove('hidden');
+};
+
+// LOGOUT
+document.getElementById('logout-btn').onclick = () => {
+    location.reload(); // Nejjednodušší restart apky
+};
